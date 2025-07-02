@@ -59,6 +59,49 @@
     .section.active {
       display: block;
     }
+    .switch {
+  position: relative;
+  display: inline-block;
+  width: 50px;
+  height: 28px;
+}
+
+.switch input {
+  opacity: 0;
+  width: 0;
+  height: 0;
+}
+
+.slider {
+  position: absolute;
+  cursor: pointer;
+  top: 0; left: 0;
+  right: 0; bottom: 0;
+  background-color: #ccc;
+  transition: .4s;
+  border-radius: 28px;
+}
+
+.slider:before {
+  position: absolute;
+  content: "";
+  height: 22px;
+  width: 22px;
+  left: 3px;
+  bottom: 3px;
+  background-color: white;
+  transition: .4s;
+  border-radius: 50%;
+}
+
+input:checked + .slider {
+  background-color: #0077b6;
+}
+
+input:checked + .slider:before {
+  transform: translateX(22px);
+}
+
 
     h2 {
       margin-top: 0;
@@ -176,6 +219,14 @@
     <div id="hardware" class="section">
       <h2>Hardware Setup</h2>
       <div class="form-group">
+        <label for="ethernetSwitch">Select Ethernet Interface</label><br>
+        <label class="switch">
+          <input type="checkbox" id="ethernetSwitch" onchange="updateEthernetLabel()">
+          <span class="slider round"></span>
+        </label>
+        <span id="ethernetLabel" style="margin-left: 10px;">eth0</span>
+      </div>
+      <div class="form-group">
         <input type="text" placeholder="IP Address" id="hardware_ip">
       </div>
       <div class="form-group">
@@ -183,6 +234,9 @@
       </div>
       <div class="form-group">
         <input type="text" placeholder="Gateway" id="gateway">
+      </div>
+            <div class="form-group">
+        <button onclick="submitHardware()">Save Backend</button>
       </div>
     </div> 
 
@@ -250,6 +304,39 @@ function submitBackend() {
     body: JSON.stringify(data)
   }).then(res => res.json())
     .then(res => alert('Saved!'));
+}
+
+function updateEthernetLabel() {
+  const isChecked = document.getElementById("ethernetSwitch").checked;
+  const selectedInterface = isChecked ? "eth1" : "eth0";
+  document.getElementById("ethernetLabel").textContent = selectedInterface;
+
+  fetch(`/list-hardware?iface=${selectedInterface}`)
+    .then(response => response.json())
+    .then(data => {
+      console.log("Hardware Info:", data);
+
+      // Populate input boxes with the fetched values
+      document.getElementById("hardware_ip").value = data.ip_address || "";
+      document.getElementById("gateway").value = data.gateway || "";
+      document.getElementById("dns").value = (data.dns || []).join(", ");
+    })
+    .catch(err => {
+      console.error("Error:", err);
+      document.getElementById("hardware_ip").value = "";
+      document.getElementById("gateway").value = "";
+      document.getElementById("dns").value = "";
+    });
+}
+
+
+function getSelectedEthernet() {
+  return document.getElementById("ethernetSwitch").checked ? "eth1" : "eth0";
+}
+
+
+function submitHardware(){
+
 }
 </script>
 
