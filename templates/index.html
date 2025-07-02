@@ -95,7 +95,7 @@
 }
 
 input:checked + .slider {
-  background-color: #0077b6;
+  background-color: #b63400;
 }
 
 input:checked + .slider:before {
@@ -195,60 +195,84 @@ input:checked + .slider:before {
     <a href="#" onclick="showSection('hardware')">Hardware Setup</a>
     <a href="#" onclick="showSection('wifi')">Wi-Fi Config</a>
     <a href="#" onclick="showSection('parameters')">Parameters</a>
+    <a href="#" onclick="showSection('Reboot')">Reboot</a>
   </div>
 
   <div class="main-content">
     <!-- Backend -->
     <div id="backend" class="section active">
-      <h2>Backend Setup</h2>
-      <div class="form-group">
-        <input type="text" placeholder="Backend URL" id="backend_url">
-      </div>
-      <div class="form-group">
-        <input type="text" placeholder="Username" id="backend_user">
-      </div>
-      <div class="form-group">
-        <input type="password" placeholder="Password" id="backend_pass">
-      </div>
-      <div class="form-group">
-        <button onclick="submitBackend()">Save Backend</button>
-      </div>
-    </div>
+  <h2>Backend Setup</h2>
+
+  <div class="form-group">
+    <label for="backend_url">Backend URL</label>
+    <input type="text" placeholder="Enter Backend URL" id="backend_url">
+  </div>
+
+  <div class="form-group">
+    <label for="backend_user">Username</label>
+    <input type="text" placeholder="Enter Username" id="backend_user">
+  </div>
+
+  <div class="form-group">
+    <label for="backend_pass">Password</label>
+    <input type="password" placeholder="Enter Password" id="backend_pass">
+  </div>
+
+  <div class="form-group">
+    <button onclick="submitBackend()">Save Backend</button>
+  </div>
+</div>
+
 
     <!-- Hardware -->
     <div id="hardware" class="section">
-      <h2>Hardware Setup</h2>
-      <div class="form-group">
-        <label for="ethernetSwitch">Select Ethernet Interface</label><br>
-        <label class="switch">
-          <input type="checkbox" id="ethernetSwitch" onchange="updateEthernetLabel()">
-          <span class="slider round"></span>
-        </label>
-        <span id="ethernetLabel" style="margin-left: 10px;">eth0</span>
-      </div>
-      <div class="form-group">
-        <input type="text" placeholder="IP Address" id="hardware_ip">
-      </div>
-      <div class="form-group">
-        <input type="text" placeholder="DNS" id="dns">
-      </div>
-      <div class="form-group">
-        <input type="text" placeholder="Gateway" id="gateway">
-      </div>
-            <div class="form-group">
-        <button onclick="submitHardware()">Save Backend</button>
-      </div>
-    </div> 
+  <h2>Hardware Setup</h2>
 
-    <!-- Wi-Fi -->
-    <div id="wifi" class="section">
-      <h2>Wi-Fi Configuration</h2>
-      <button onclick="loadWiFi()">🔄 Scan Wi-Fi</button>
-      <table>
-        <thead><tr><th>SSID</th><th>Signal</th><th>Quality</th></tr></thead>
-        <tbody id="wifiTable"></tbody>
-      </table>
-    </div>
+  <div class="form-group">
+    <label for="ethernetSwitch">Select Ethernet Interface</label><br>
+    <label class="switch">
+      <input type="checkbox" id="ethernetSwitch" onchange="updateEthernetLabel()">
+      <span class="slider round"></span>
+    </label>
+    <span id="ethernetLabel" style="margin-left: 10px;">eth0</span>
+  </div>
+
+  <div class="form-group">
+    <label for="hardware_ip">IP Address</label>
+    <input type="text" id="hardware_ip" placeholder="192.168.x.x">
+  </div>
+
+  <div class="form-group">
+    <label for="dns">DNS</label>
+    <input type="text" id="dns" placeholder="8.8.8.8">
+  </div>
+
+  <div class="form-group">
+    <label for="gateway">Gateway</label>
+    <input type="text" id="gateway" placeholder="192.168.x.1">
+  </div>
+
+  <div class="form-group">
+    <button onclick="submitHardware()">Save Hardware</button>
+  </div>
+</div>
+
+<!-- Wi-Fi -->
+<div id="wifi" class="section">
+  <h2>Wi-Fi Configuration</h2>
+  <p><strong>Connected to:</strong> <span id="connectedWifi">Checking...</span></p>
+  <button onclick="loadWiFi()">🔄 Scan Wi-Fi</button>
+  <table>
+    <thead><tr><th>SSID</th><th>Signal</th><th>Quality</th></tr></thead>
+    <tbody id="wifiTable"></tbody>
+  </table>
+
+  <div id="wifiForm" style="display:none; margin-top:20px;">
+    <h3>Connect to <span id="selectedSSID"></span></h3>
+    <input type="password" id="wifiPassword" placeholder="Enter Wi-Fi Password">
+    <button onclick="connectWiFi()">Connect</button>
+  </div>
+</div>
 
     <!-- Parameters -->
     <div id="parameters" class="section">
@@ -271,24 +295,77 @@ function showSection(id) {
   if (match) match.classList.add('active');
 }
 
+function getConnectedWifi() {
+  fetch('/current-wifi')
+    .then(res => res.json())
+    .then(data => {
+      document.getElementById("connectedWifi").textContent = data.ssid || "Not Connected";
+    })
+    .catch(err => {
+      console.error("Wi-Fi status error:", err);
+      document.getElementById("connectedWifi").textContent = "Error";
+    });
+}
+
+
+let selectedSSID = "";
+
 function loadWiFi() {
+  getConnectedWifi(); // <-- Call it when button is clicked
+
   fetch('/wifi-scan')
     .then(res => res.json())
     .then(data => {
       const table = document.getElementById('wifiTable');
       table.innerHTML = '';
+
       if (data.length === 0) {
         table.innerHTML = '<tr><td colspan="3">No Wi-Fi networks found.</td></tr>';
         return;
       }
-      data.forEach(w => {
-        table.innerHTML += `<tr><td>${w.ssid}</td><td>${w.signal}</td><td>${w.quality}%</td></tr>`;
+
+      data.forEach(wifi => {
+        const row = document.createElement("tr");
+        row.innerHTML = `<td>${wifi.ssid}</td><td>${wifi.signal} dBm</td><td>${wifi.quality}%</td>`;
+        row.style.cursor = "pointer";
+
+        row.onclick = () => {
+          selectedSSID = wifi.ssid;
+          document.getElementById("selectedSSID").textContent = selectedSSID;
+          document.getElementById("wifiForm").style.display = "block";
+        };
+
+        table.appendChild(row);
       });
     })
     .catch(err => {
       console.error("Wi-Fi fetch error:", err);
       document.getElementById('wifiTable').innerHTML = '<tr><td colspan="3">Error loading Wi-Fi list.</td></tr>';
     });
+}
+
+
+function connectWiFi() {
+  const password = document.getElementById("wifiPassword").value;
+
+  if (!selectedSSID || !password) {
+    alert("Please select an SSID and enter password.");
+    return;
+  }
+
+  fetch('/connect-wifi', {
+    method: "POST",
+    headers: {'Content-Type': 'application/json'},
+    body: JSON.stringify({ ssid: selectedSSID, password })
+  })
+  .then(res => res.json())
+  .then(data => {
+    alert(data.status === "connected" ? "Connected successfully!" : "Failed to connect.");
+  })
+  .catch(err => {
+    console.error("Wi-Fi connect error:", err);
+    alert("Connection failed.");
+  });
 }
 
 
@@ -336,6 +413,20 @@ function getSelectedEthernet() {
 
 
 function submitHardware(){
+    const data = {
+    ethernetLabel:document.getElementById('ethernetLabel').textContent,
+    ethernetSwitch: getSelectedEthernet(),
+    hardware_ip: document.getElementById('hardware_ip').value,
+    dns: document.getElementById('dns').value,
+    gateway: document.getElementById('gateway').value
+
+  };
+  fetch('/save-hardware', {
+    method: 'POST',
+    headers: {'Content-Type': 'application/json'},
+    body: JSON.stringify(data)
+  }).then(res => res.json())
+    .then(res => alert('Saved!'));
 
 }
 </script>

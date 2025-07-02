@@ -87,11 +87,89 @@ def list_hardware():
     except Exception as e:
         return jsonify({"error": str(e)}), 500
 
+@app.route("/current-wifi")
+def current_wifi():
+    try:
+        ssid = subprocess.check_output(["iwgetid", "-r"], text=True).strip()
+        return jsonify({"ssid": ssid if ssid else "Not Connected"})
+    except Exception as e:
+        return jsonify({"ssid": "Unknown", "error": str(e)})
+
+
+@app.route("/connect-wifi", methods=["POST"])
+def connect_wifi():
+    data = request.json
+    ssid = data.get("ssid")
+    password = data.get("password")
+
+    if not ssid or not password:
+        return jsonify({"status": "error", "message": "Missing SSID or password"}), 400
+
+    # Use wpa_supplicant to connect (overwrite config)
+    try:
+        wpa_conf = f"""
+        ctrl_interface=DIR=/var/run/wpa_supplicant GROUP=netdev
+        update_config=1
+        country=IN
+
+        network={{
+            ssid="{ssid}"
+            psk="{password}"
+        }}
+        """
+        with open("/etc/wpa_supplicant/wpa_supplicant.conf", "w") as f:
+            f.write(wpa_conf)
+
+        # Restart Wi-Fi interface (may vary by system)
+        subprocess.call(["sudo", "wpa_cli", "-i", "wlan0", "reconfigure"])
+        return jsonify({"status": "connected"})
+    except Exception as e:
+        return jsonify({"status": "error", "message": str(e)})
+
+
 @app.route("/save-hardware", methods=["POST"])
 def save_hardware():
     data = request.json
     print("Received hardware data:", data)
-    return jsonify({"status": "saved"})
+
+    interface = data.get("ethernetLabel") or "eth0"
+    ip = data.get("hardware_ip")
+    gateway = data.get("gateway")
+    dns = data.get("dns", "")
+
+    if not ip or not gateway:
+        return jsonify({"status": "error", "message": "Missing IP or Gateway"}), 400
+
+    try:
+        # Build the static config
+        static_config = f"""
+interface {interface}
+static ip_address={ip}/24
+static routers={gateway}
+"""
+
+        # Read current config
+        with open("/etc/dhcpcd.conf", "r") as file:
+            current_config = file.read()
+
+        # Remove any existing block for the same interface
+        updated_config = re.sub(
+            rf"(?s)#?interface {re.escape(interface)}.*?(?=\ninterface|\Z)",
+            "", current_config
+        ).strip()
+
+        # Append the new static ifco    
+        updated_config += "\n\n" + static_config.strip() + "\n"
+
+        # Write the updated config
+        with open("/etc/dhcpcd.conf", "w") as file:
+            file.write(updated_config)
+
+        return jsonify({"status": "saved and written to dhcpcd.conf"})
+
+    except Exception as e:
+        return jsonify({"status": "error", "message": str(e)}), 500
+
 
 @app.route("/save-backend", methods=["POST"])
 def save_backend():
