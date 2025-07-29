@@ -1,18 +1,39 @@
 <!DOCTYPE html>
 <html>
+
 <head>
   <meta charset="UTF-8">
   <title>Yantra24x7</title>
   <link rel="icon" href="{{ url_for('static', filename='images/yantra_logo1.png') }}">
 
   <style>
-    * { box-sizing: border-box; }
+    * {
+      box-sizing: border-box;
+    }
+
     body {
       margin: 0;
       font-family: Arial, sans-serif;
       background-color: #f8f9fa;
       color: #333;
     }
+
+    body::before {
+      content: "";
+      position: fixed;
+      top: 0;
+      left: 0;
+      width: 100%;
+      height: 100%;
+      background: url("{{ url_for('static', filename='images/yantra_logo1.png') }}") no-repeat center center;
+      background-size: 300px;
+      /* adjust size of logo */
+      opacity: 0.08;
+      /* fade effect */
+      z-index: -1;
+      /* keeps it behind all content */
+    }
+
 
     .container {
       display: flex;
@@ -59,48 +80,51 @@
     .section.active {
       display: block;
     }
+
     .switch {
-  position: relative;
-  display: inline-block;
-  width: 50px;
-  height: 28px;
-}
+      position: relative;
+      display: inline-block;
+      width: 50px;
+      height: 28px;
+    }
 
-.switch input {
-  opacity: 0;
-  width: 0;
-  height: 0;
-}
+    .switch input {
+      opacity: 0;
+      width: 0;
+      height: 0;
+    }
 
-.slider {
-  position: absolute;
-  cursor: pointer;
-  top: 0; left: 0;
-  right: 0; bottom: 0;
-  background-color: #ccc;
-  transition: .4s;
-  border-radius: 28px;
-}
+    .slider {
+      position: absolute;
+      cursor: pointer;
+      top: 0;
+      left: 0;
+      right: 0;
+      bottom: 0;
+      background-color: #ccc;
+      transition: .4s;
+      border-radius: 28px;
+    }
 
-.slider:before {
-  position: absolute;
-  content: "";
-  height: 22px;
-  width: 22px;
-  left: 3px;
-  bottom: 3px;
-  background-color: white;
-  transition: .4s;
-  border-radius: 50%;
-}
+    .slider:before {
+      position: absolute;
+      content: "";
+      height: 22px;
+      width: 22px;
+      left: 3px;
+      bottom: 3px;
+      background-color: white;
+      transition: .4s;
+      border-radius: 50%;
+    }
 
-input:checked + .slider {
-  background-color: #b63400;
-}
+    input:checked+.slider {
+      background-color: #b63400;
+    }
 
-input:checked + .slider:before {
-  transform: translateX(22px);
-}
+    input:checked+.slider:before {
+      transform: translateX(22px);
+    }
 
 
     h2 {
@@ -108,7 +132,9 @@ input:checked + .slider:before {
       color: #023e8a;
     }
 
-    input, select, button {
+    input,
+    select,
+    button {
       padding: 10px;
       margin: 10px 0;
       width: 100%;
@@ -136,10 +162,11 @@ input:checked + .slider:before {
       margin-top: 10px;
       border-collapse: collapse;
       background: white;
-      box-shadow: 0 0 5px rgba(0,0,0,0.05);
+      box-shadow: 0 0 5px rgba(0, 0, 0, 0.05);
     }
 
-    th, td {
+    th,
+    td {
       padding: 12px;
       border: 1px solid #ccc;
       font-size: 14px;
@@ -161,8 +188,15 @@ input:checked + .slider:before {
     }
 
     @keyframes fadeIn {
-      from { opacity: 0; transform: translateY(10px); }
-      to { opacity: 1; transform: translateY(0); }
+      from {
+        opacity: 0;
+        transform: translateY(10px);
+      }
+
+      to {
+        opacity: 1;
+        transform: translateY(0);
+      }
     }
 
     @media (max-width: 768px) {
@@ -187,247 +221,254 @@ input:checked + .slider:before {
     }
   </style>
 </head>
+
 <body>
 
-<div class="container">
-  <div class="sidebar">
-    <a href="#" onclick="showSection('backend')">Backend Setup</a>
-    <a href="#" onclick="showSection('hardware')">Hardware Setup</a>
-    <a href="#" onclick="showSection('wifi')">Wi-Fi Config</a>
-    <a href="#" onclick="showSection('Machine')">Machine List</a>
-    <a href="#" onclick="showSection('parameters')">Parameters</a>
-    <a href="#" onclick="showSection('reboot')">Reboot</a>
-  </div>
-
-
-  <div class="main-content">
-<!-- ✅ Machine List -->
-<div id="Machine" class="section">
-  <h2>Machine List</h2>
-
-  <div class="form-group">
-    <label for="machineCount">Enter Number of Machines</label>
-    <input type="number" id="machineCount" min="1" placeholder="e.g. 3">
-    <button onclick="checkMachineLimit()">Generate</button>
-    <button style="background-color: red;" onclick="resetMachines()">Reset Machines</button>
-  </div>  <!-- ✅ closes form-group properly -->
-
-  <div id="machineInputs"></div>
-</div> <!-- ✅ closes Machine section properly -->
-
-
-
-
-    <!-- Backend -->
-    <div id="backend" class="section active">
-  <h2>Backend Setup</h2>
-
-  <div class="form-group">
-    <label for="backend_url">Backend URL</label>
-    <input type="text" placeholder="Enter Backend URL" id="backend_url">
-  </div>
-
-  <div class="form-group">
-    <label for="backend_user">Username</label>
-    <input type="text" placeholder="Enter Username" id="backend_user">
-  </div>
-
-  <div class="form-group">
-    <label for="backend_pass">Password</label>
-    <input type="password" placeholder="Enter Password" id="backend_pass">
-  </div>
-
-  <div class="form-group">
-    <button onclick="submitBackend()">Save Backend</button>
-  </div>
-</div>
-
-
-    <!-- Hardware -->
-    <div id="hardware" class="section">
-  <h2>Hardware Setup</h2>
-
-  <div class="form-group">
-    <label for="ethernetSwitch">Select Ethernet Interface</label><br>
-    <label class="switch">
-      <input type="checkbox" id="ethernetSwitch" onchange="updateEthernetLabel()">
-      <span class="slider round"></span>
-    </label>
-    <span id="ethernetLabel" style="margin-left: 10px;">eth0</span>
-  </div>
-
-  <div class="form-group">
-    <label for="hardware_ip">IP Address</label>
-    <input type="text" id="hardware_ip" placeholder="192.168.x.x">
-  </div>
-
-  <div class="form-group">
-    <label for="dns">DNS</label>
-    <input type="text" id="dns" placeholder="8.8.8.8">
-  </div>
-
-  <div class="form-group">
-    <label for="gateway">Gateway</label>
-    <input type="text" id="gateway" placeholder="192.168.x.1">
-  </div>
-
-  <div class="form-group">
-    <button onclick="submitHardware()">Save Hardware</button>
-  </div>
-</div>
-
-<!-- Wi-Fi -->
-<div id="wifi" class="section">
-  <h2>Wi-Fi Configuration</h2>
-  <p><strong>Connected to:</strong> <span id="connectedWifi">Checking...</span></p>
-  <button onclick="loadWiFi()">🔄 Scan Wi-Fi</button>
-  <table>
-    <thead><tr><th>SSID</th><th>Signal</th><th>Quality</th></tr></thead>
-    <tbody id="wifiTable"></tbody>
-  </table>
-
-  <div id="wifiForm" style="display:none; margin-top:20px;">
-    <h3>Connect to <span id="selectedSSID"></span></h3>
-    <input type="password" id="wifiPassword" placeholder="Enter Wi-Fi Password">
-    <button onclick="connectWiFi()">Connect</button>
-  </div>
-</div>
-
-    <!-- Parameters -->
-    <div id="parameters" class="section">
-      <h2>Parameters</h2>
-      <label><input type="checkbox"> Cutting Time</label>
-      <label><input type="checkbox"> Spindle Load</label>
-      <label><input type="checkbox"> Program No</label>
+  <div class="container">
+    <div class="sidebar">
+      <a href="#" onclick="showSection('backend')">Backend Setup</a>
+      <a href="#" onclick="showSection('hardware')">Hardware Setup</a>
+      <a href="#" onclick="showSection('wifi')">Wi-Fi Config</a>
+      <a href="#" onclick="showSection('Machine')">Machine List</a>
+      <a href="#" onclick="showSection('parameters')">Parameters</a>
+      <a href="#" onclick="showSection('reboot')">Reboot</a>
     </div>
 
 
+    <div class="main-content">
+      <!-- ✅ Machine List -->
+      <div id="Machine" class="section">
+        <h2>Machine List</h2>
 
-<!-- ...existing code... -->
- <div id="reboot" class="section">
-      <h2>Reboot</h2>
-      <p>Click the button below to reboot the system.</p>
-      <button id="rebootBtn" onclick="rebootPi()">Reboot Now</button>
-      <span id="rebootStatus" style="margin-left:10px;color:#b63400;font-weight:bold;"></span>
-    </div>
-  </div> <!-- ✅ closes main-content here -->
-</div> <!-- ✅ closes container here -->
+        <div class="form-group">
+          <label for="machineCount">Enter Number of Machines</label>
+          <input type="number" id="machineCount" min="1" placeholder="e.g. 3">
+          <button onclick="checkMachineLimit()">Generate</button>
+          <button style="background-color: red;" onclick="resetMachines()">Reset Machines</button>
+        </div> <!-- ✅ closes form-group properly -->
 
-<script>
-function rebootPi() {
-  if (confirm("Are you sure you want to reboot the Raspberry Pi?")) {
-    const btn = document.getElementById('rebootBtn');
-    const status = document.getElementById('rebootStatus');
-    btn.disabled = true;
-    status.textContent = "Rebooting...";
-    fetch('/reboot', {
-      method: 'GET'
-    })
-    .then(response => response.text())
-    .then(msg => {
-      status.textContent = "Reboot command sent!";
-      setTimeout(() => {
-        status.textContent = "";
-        btn.disabled = false;
-      }, 10000); // Re-enable after 10 seconds
-      alert(msg);
-    })
-    .catch(err => {
-      status.textContent = "⚠️ Error!";
-      btn.disabled = false;
-      alert("⚠️ Error sending reboot command!");
-    });
-  }
-}
-</script>
-<!-- ...existing code... -->
+        <div id="machineInputs"></div>
+      </div> <!-- ✅ closes Machine section properly -->
 
-<script>
-function showSection(id) {
-  document.querySelectorAll('.section').forEach(s => s.classList.remove('active'));
-  document.getElementById(id).classList.add('active');
 
-  document.querySelectorAll('.sidebar a').forEach(a => a.classList.remove('active'));
-  const match = Array.from(document.querySelectorAll('.sidebar a'))
-    .find(a => a.textContent.toLowerCase().includes(id));
-  if (match) match.classList.add('active');
 
-  // ✅ When Wi-Fi Config is clicked, trigger /current-wifi
-  if (id === 'wifi') {
-    getConnectedWifi();
-  }
-}
 
-function resetMachines() {
-  if (!confirm("⚠️ Are you sure you want to delete ALL machine data?")) {
-    return;
-  }
+      <!-- Backend -->
+      <div id="backend" class="section active">
+        <h2>Backend Setup</h2>
 
-  fetch('/reset-machines', { method: 'GET' })
-    .then(res => res.json())
-    .then(data => {
-      if (data.status === "ok") {
-        alert("✅ All machine data cleared!");
-        document.getElementById("machineInputs").innerHTML = ""; // clear UI
-        document.getElementById("machineCount").value = ""; // reset count
-      } else {
-        alert("❌ Error: " + data.message);
+        <div class="form-group">
+          <label for="backend_url">Backend URL</label>
+          <input type="text" placeholder="Enter Backend URL" id="backend_url">
+        </div>
+
+        <div class="form-group">
+          <label for="backend_user">Username</label>
+          <input type="text" placeholder="Enter Username" id="backend_user">
+        </div>
+
+        <div class="form-group">
+          <label for="backend_pass">Password</label>
+          <input type="password" placeholder="Enter Password" id="backend_pass">
+        </div>
+
+        <div class="form-group">
+          <button onclick="submitBackend()">Save Backend</button>
+        </div>
+      </div>
+
+
+      <!-- Hardware -->
+      <div id="hardware" class="section">
+        <h2>Hardware Setup</h2>
+
+        <div class="form-group">
+          <label for="ethernetSwitch">Select Ethernet Interface</label><br>
+          <label class="switch">
+            <input type="checkbox" id="ethernetSwitch" onchange="updateEthernetLabel()">
+            <span class="slider round"></span>
+          </label>
+          <span id="ethernetLabel" style="margin-left: 10px;">eth0</span>
+        </div>
+
+        <div class="form-group">
+          <label for="hardware_ip">IP Address</label>
+          <input type="text" id="hardware_ip" placeholder="192.168.x.x">
+        </div>
+
+        <div class="form-group">
+          <label for="dns">DNS</label>
+          <input type="text" id="dns" placeholder="8.8.8.8">
+        </div>
+
+        <div class="form-group">
+          <label for="gateway">Gateway</label>
+          <input type="text" id="gateway" placeholder="192.168.x.1">
+        </div>
+
+        <div class="form-group">
+          <button onclick="submitHardware()">Save Hardware</button>
+        </div>
+      </div>
+
+      <!-- Wi-Fi -->
+      <div id="wifi" class="section">
+        <h2>Wi-Fi Configuration</h2>
+        <p><strong>Connected to:</strong> <span id="connectedWifi">Checking...</span></p>
+        <button onclick="loadWiFi()">🔄 Scan Wi-Fi</button>
+        <table>
+          <thead>
+            <tr>
+              <th>SSID</th>
+              <th>Signal</th>
+              <th>Quality</th>
+            </tr>
+          </thead>
+          <tbody id="wifiTable"></tbody>
+        </table>
+
+        <div id="wifiForm" style="display:none; margin-top:20px;">
+          <h3>Connect to <span id="selectedSSID"></span></h3>
+          <input type="password" id="wifiPassword" placeholder="Enter Wi-Fi Password">
+          <button onclick="connectWiFi()">Connect</button>
+        </div>
+      </div>
+
+      <!-- Parameters -->
+      <div id="parameters" class="section">
+        <h2>Parameters</h2>
+        <label><input type="checkbox"> Cutting Time</label>
+        <label><input type="checkbox"> Spindle Load</label>
+        <label><input type="checkbox"> Program No</label>
+      </div>
+
+
+
+      <!-- ...existing code... -->
+      <div id="reboot" class="section">
+        <h2>Reboot</h2>
+        <p>Click the button below to reboot the system.</p>
+        <button id="rebootBtn" onclick="rebootPi()">Reboot Now</button>
+        <span id="rebootStatus" style="margin-left:10px;color:#b63400;font-weight:bold;"></span>
+      </div>
+    </div> <!-- ✅ closes main-content here -->
+  </div> <!-- ✅ closes container here -->
+
+  <script>
+    function rebootPi() {
+      if (confirm("Are you sure you want to reboot the Raspberry Pi?")) {
+        const btn = document.getElementById('rebootBtn');
+        const status = document.getElementById('rebootStatus');
+        btn.disabled = true;
+        status.textContent = "Rebooting...";
+        fetch('/reboot', {
+          method: 'GET'
+        })
+          .then(response => response.text())
+          .then(msg => {
+            status.textContent = "Reboot command sent!";
+            setTimeout(() => {
+              status.textContent = "";
+              btn.disabled = false;
+            }, 10000); // Re-enable after 10 seconds
+            alert(msg);
+          })
+          .catch(err => {
+            status.textContent = "⚠️ Error!";
+            btn.disabled = false;
+            alert("⚠️ Error sending reboot command!");
+          });
       }
-    })
-    .catch(err => {
-      console.error("Reset error:", err);
-      alert("❌ Failed to reset machine data!");
-    });
-}
+    }
+  </script>
+  <!-- ...existing code... -->
 
+  <script>
+    function showSection(id) {
+      document.querySelectorAll('.section').forEach(s => s.classList.remove('active'));
+      document.getElementById(id).classList.add('active');
 
+      document.querySelectorAll('.sidebar a').forEach(a => a.classList.remove('active'));
+      const match = Array.from(document.querySelectorAll('.sidebar a'))
+        .find(a => a.textContent.toLowerCase().includes(id));
+      if (match) match.classList.add('active');
 
-function getConnectedWifi() {
-  fetch('/current-wifi')
-    .then(res => res.json())
-    .then(data => {
-      document.getElementById("connectedWifi").textContent = data.ssid || "Not Connected";
-    })
-    .catch(err => {
-      console.error("Wi-Fi status error:", err);
-      document.getElementById("connectedWifi").textContent = "Error";
-    });
-}
-
-function checkMachineLimit() {
-  const count = document.getElementById("machineCount").value;
-  const container = document.getElementById("machineInputs");
-  container.innerHTML = "";
-
-  if (count <= 0) {
-    alert("Please enter a valid number!");
-    return;
-  }
-
-  // ✅ Confirm with backend
-  fetch(`/check-machine-limit?count=${count}`)
-    .then(res => res.json())
-    .then(data => {
-      if (data.status === "ok") {
-        generateMachineInputs(count);
-      } else {
-        alert(data.message || "Machine limit exceeded!");
+      // ✅ When Wi-Fi Config is clicked, trigger /current-wifi
+      if (id === 'wifi') {
+        getConnectedWifi();
       }
-    })
-    .catch(err => {
-      console.error("Error checking limit:", err);
-      alert("⚠️ Unable to check machine limit.");
-    });
-}
+    }
 
-function generateMachineInputs(count) {
-  const container = document.getElementById("machineInputs");
-  container.innerHTML = "";
+    function resetMachines() {
+      if (!confirm("⚠️ Are you sure you want to delete ALL machine data?")) {
+        return;
+      }
 
-  for (let i = 1; i <= count; i++) {
-    const div = document.createElement("div");
-    div.classList.add("form-group");
-    div.innerHTML = `
+      fetch('/reset-machines', { method: 'GET' })
+        .then(res => res.json())
+        .then(data => {
+          if (data.status === "ok") {
+            alert("✅ All machine data cleared!");
+            document.getElementById("machineInputs").innerHTML = ""; // clear UI
+            document.getElementById("machineCount").value = ""; // reset count
+          } else {
+            alert("❌ Error: " + data.message);
+          }
+        })
+        .catch(err => {
+          console.error("Reset error:", err);
+          alert("❌ Failed to reset machine data!");
+        });
+    }
+
+
+
+    function getConnectedWifi() {
+      fetch('/current-wifi')
+        .then(res => res.json())
+        .then(data => {
+          document.getElementById("connectedWifi").textContent = data.ssid || "Not Connected";
+        })
+        .catch(err => {
+          console.error("Wi-Fi status error:", err);
+          document.getElementById("connectedWifi").textContent = "Error";
+        });
+    }
+
+    function checkMachineLimit() {
+      const count = document.getElementById("machineCount").value;
+      const container = document.getElementById("machineInputs");
+      container.innerHTML = "";
+
+      if (count <= 0) {
+        alert("Please enter a valid number!");
+        return;
+      }
+
+      // ✅ Confirm with backend
+      fetch(`/check-machine-limit?count=${count}`)
+        .then(res => res.json())
+        .then(data => {
+          if (data.status === "ok") {
+            generateMachineInputs(count);
+          } else {
+            alert(data.message || "Machine limit exceeded!");
+          }
+        })
+        .catch(err => {
+          console.error("Error checking limit:", err);
+          alert("⚠️ Unable to check machine limit.");
+        });
+    }
+
+    function generateMachineInputs(count) {
+      const container = document.getElementById("machineInputs");
+      container.innerHTML = "";
+
+      for (let i = 1; i <= count; i++) {
+        const div = document.createElement("div");
+        div.classList.add("form-group");
+        div.innerHTML = `
       <h3>Machine ${i}</h3>
       
       <label>Machine Name</label>
@@ -448,220 +489,221 @@ function generateMachineInputs(count) {
       <button onclick="submitMachine(${i})">Submit Machine ${i}</button>
       <span id="status_${i}" style="margin-left:10px;color:green;font-weight:bold;"></span>
     `;
-    container.appendChild(div);
-  }
-}
-
-function submitMachine(index) {
-  const payload = {
-    machine_name: document.getElementById(`machine_name_${index}`).value,
-    machine_ip: document.getElementById(`machine_ip_${index}`).value,
-    reason_id: document.getElementById(`reason_id_${index}`).value,
-    operator_id: document.getElementById(`operator_id_${index}`).value,
-    routecard_id: document.getElementById(`routecard_id_${index}`).value
-  };
-
-  // ✅ Validate
-  if (!payload.machine_name) {
-    alert(`⚠️ Please enter Machine Name for Machine ${index}`);
-    return;
-  }
-
-  // ✅ Disable button & show status
-  const statusSpan = document.getElementById(`status_${index}`);
-  statusSpan.style.color = "blue";
-  statusSpan.textContent = "Saving...";
-
-  // ✅ Send to backend
-  fetch('/save-machine', {
-    method: 'POST',
-    headers: { 'Content-Type': 'application/json' },
-    body: JSON.stringify(payload)
-  })
-  .then(res => res.json())
-  .then(res => {
-    if (res.status === "ok") {
-      statusSpan.style.color = "green";
-      statusSpan.textContent = "✅ Saved!";
-    } else {
-      statusSpan.style.color = "red";
-      statusSpan.textContent = "❌ Error!";
-    }
-  })
-  .catch(err => {
-    console.error(`Error saving Machine ${index}:`, err);
-    statusSpan.style.color = "red";
-    statusSpan.textContent = "❌ Failed!";
-  });
-}
-
-function saveMachines() {
-  const count = document.getElementById("machineCount").value;
-
-  if (count <= 0) {
-    alert("Please generate machines first!");
-    return;
-  }
-
-  let promises = [];
-
-  for (let i = 1; i <= count; i++) {
-    const payload = {
-      machine_name: document.getElementById(`machine_name_${i}`).value,
-      machine_ip: document.getElementById(`machine_ip_${i}`).value,
-      reason_id: document.getElementById(`reason_id_${i}`).value,
-      operator_id: document.getElementById(`operator_id_${i}`).value,
-      routecard_id: document.getElementById(`routecard_id_${i}`).value
-    };
-
-    // ✅ Validate at least machine name
-    if (!payload.machine_name) {
-      alert(`⚠️ Please enter Machine Name for Machine ${i}`);
-      return;
+        container.appendChild(div);
+      }
     }
 
-    // ✅ Send each machine one by one to backend
-    promises.push(
+    function submitMachine(index) {
+      const payload = {
+        machine_name: document.getElementById(`machine_name_${index}`).value,
+        machine_ip: document.getElementById(`machine_ip_${index}`).value,
+        reason_id: document.getElementById(`reason_id_${index}`).value,
+        operator_id: document.getElementById(`operator_id_${index}`).value,
+        routecard_id: document.getElementById(`routecard_id_${index}`).value
+      };
+
+      // ✅ Validate
+      if (!payload.machine_name) {
+        alert(`⚠️ Please enter Machine Name for Machine ${index}`);
+        return;
+      }
+
+      // ✅ Disable button & show status
+      const statusSpan = document.getElementById(`status_${index}`);
+      statusSpan.style.color = "blue";
+      statusSpan.textContent = "Saving...";
+
+      // ✅ Send to backend
       fetch('/save-machine', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify(payload)
       })
-      .then(res => res.json())
-      .then(res => console.log(`Machine ${i} saved`, res))
-      .catch(err => console.error(`Error saving Machine ${i}:`, err))
-    );
-  }
+        .then(res => res.json())
+        .then(res => {
+          if (res.status === "ok") {
+            statusSpan.style.color = "green";
+            statusSpan.textContent = "✅ Saved!";
+          } else {
+            statusSpan.style.color = "red";
+            statusSpan.textContent = "❌ Error!";
+          }
+        })
+        .catch(err => {
+          console.error(`Error saving Machine ${index}:`, err);
+          statusSpan.style.color = "red";
+          statusSpan.textContent = "❌ Failed!";
+        });
+    }
 
-  // ✅ After all machines are processed
-  Promise.all(promises)
-    .then(() => alert("✅ All machines saved successfully!"))
-    .catch(() => alert("⚠️ Some machines failed to save."));
-}
+    function saveMachines() {
+      const count = document.getElementById("machineCount").value;
 
-
-let selectedSSID = "";
-
-function loadWiFi() {
-  getConnectedWifi(); // <-- Call it when button is clicked
-
-  fetch('/wifi-scan')
-    .then(res => res.json())
-    .then(data => {
-      const table = document.getElementById('wifiTable');
-      table.innerHTML = '';
-
-      if (data.length === 0) {
-        table.innerHTML = '<tr><td colspan="3">No Wi-Fi networks found.</td></tr>';
+      if (count <= 0) {
+        alert("Please generate machines first!");
         return;
       }
 
-      data.forEach(wifi => {
-        const row = document.createElement("tr");
-        row.innerHTML = `<td>${wifi.ssid}</td><td>${wifi.signal} dBm</td><td>${wifi.quality}%</td>`;
-        row.style.cursor = "pointer";
+      let promises = [];
 
-        row.onclick = () => {
-          selectedSSID = wifi.ssid;
-          document.getElementById("selectedSSID").textContent = selectedSSID;
-          document.getElementById("wifiForm").style.display = "block";
+      for (let i = 1; i <= count; i++) {
+        const payload = {
+          machine_name: document.getElementById(`machine_name_${i}`).value,
+          machine_ip: document.getElementById(`machine_ip_${i}`).value,
+          reason_id: document.getElementById(`reason_id_${i}`).value,
+          operator_id: document.getElementById(`operator_id_${i}`).value,
+          routecard_id: document.getElementById(`routecard_id_${i}`).value
         };
 
-        table.appendChild(row);
-      });
-    })
-    .catch(err => {
-      console.error("Wi-Fi fetch error:", err);
-      document.getElementById('wifiTable').innerHTML = '<tr><td colspan="3">Error loading Wi-Fi list.</td></tr>';
-    });
-}
+        // ✅ Validate at least machine name
+        if (!payload.machine_name) {
+          alert(`⚠️ Please enter Machine Name for Machine ${i}`);
+          return;
+        }
+
+        // ✅ Send each machine one by one to backend
+        promises.push(
+          fetch('/save-machine', {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify(payload)
+          })
+            .then(res => res.json())
+            .then(res => console.log(`Machine ${i} saved`, res))
+            .catch(err => console.error(`Error saving Machine ${i}:`, err))
+        );
+      }
+
+      // ✅ After all machines are processed
+      Promise.all(promises)
+        .then(() => alert("✅ All machines saved successfully!"))
+        .catch(() => alert("⚠️ Some machines failed to save."));
+    }
 
 
-function connectWiFi() {
-  const password = document.getElementById("wifiPassword").value;
+    let selectedSSID = "";
 
-  if (!selectedSSID || !password) {
-    alert("Please select an SSID and enter password.");
-    return;
-  }
+    function loadWiFi() {
+      getConnectedWifi(); // <-- Call it when button is clicked
 
-  fetch('/connect-wifi', {
-    method: "POST",
-    headers: {'Content-Type': 'application/json'},
-    body: JSON.stringify({ ssid: selectedSSID, password })
-  })
-  .then(res => res.json())
-  .then(data => {
-    alert(data.status === "connected" ? "Connected successfully!" : "Failed to connect.");
-  })
-  .catch(err => {
-    console.error("Wi-Fi connect error:", err);
-    alert("Connection failed.");
-  });
-}
+      fetch('/wifi-scan')
+        .then(res => res.json())
+        .then(data => {
+          const table = document.getElementById('wifiTable');
+          table.innerHTML = '';
 
+          if (data.length === 0) {
+            table.innerHTML = '<tr><td colspan="3">No Wi-Fi networks found.</td></tr>';
+            return;
+          }
 
-function submitBackend() {
-  const data = {
-    url: document.getElementById('backend_url').value,
-    user: document.getElementById('backend_user').value,
-    pass: document.getElementById('backend_pass').value,
-  };
-  fetch('/save-backend', {
-    method: 'POST',
-    headers: {'Content-Type': 'application/json'},
-    body: JSON.stringify(data)
-  }).then(res => res.json())
-    .then(res => alert('Saved!'));
-}
+          data.forEach(wifi => {
+            const row = document.createElement("tr");
+            row.innerHTML = `<td>${wifi.ssid}</td><td>${wifi.signal} dBm</td><td>${wifi.quality}%</td>`;
+            row.style.cursor = "pointer";
 
-function updateEthernetLabel() {
-  const isChecked = document.getElementById("ethernetSwitch").checked;
-  const selectedInterface = isChecked ? "eth1" : "eth0";
-  document.getElementById("ethernetLabel").textContent = selectedInterface;
+            row.onclick = () => {
+              selectedSSID = wifi.ssid;
+              document.getElementById("selectedSSID").textContent = selectedSSID;
+              document.getElementById("wifiForm").style.display = "block";
+            };
 
-  fetch(`/list-hardware?iface=${selectedInterface}`)
-    .then(response => response.json())
-    .then(data => {
-      console.log("Hardware Info:", data);
-
-      // Populate input boxes with the fetched values
-      document.getElementById("hardware_ip").value = data.ip_address || "";
-      document.getElementById("gateway").value = data.gateway || "";
-      document.getElementById("dns").value = (data.dns || []).join(", ");
-    })
-    .catch(err => {
-      console.error("Error:", err);
-      document.getElementById("hardware_ip").value = "";
-      document.getElementById("gateway").value = "";
-      document.getElementById("dns").value = "";
-    });
-}
+            table.appendChild(row);
+          });
+        })
+        .catch(err => {
+          console.error("Wi-Fi fetch error:", err);
+          document.getElementById('wifiTable').innerHTML = '<tr><td colspan="3">Error loading Wi-Fi list.</td></tr>';
+        });
+    }
 
 
-function getSelectedEthernet() {
-  return document.getElementById("ethernetSwitch").checked ? "eth1" : "eth0";
-}
+    function connectWiFi() {
+      const password = document.getElementById("wifiPassword").value;
+
+      if (!selectedSSID || !password) {
+        alert("Please select an SSID and enter password.");
+        return;
+      }
+
+      fetch('/connect-wifi', {
+        method: "POST",
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ ssid: selectedSSID, password })
+      })
+        .then(res => res.json())
+        .then(data => {
+          alert(data.status === "connected" ? "Connected successfully!" : "Failed to connect.");
+        })
+        .catch(err => {
+          console.error("Wi-Fi connect error:", err);
+          alert("Connection failed.");
+        });
+    }
 
 
-function submitHardware(){
-    const data = {
-    ethernetLabel:document.getElementById('ethernetLabel').textContent,
-    ethernetSwitch: getSelectedEthernet(),
-    hardware_ip: document.getElementById('hardware_ip').value,
-    dns: document.getElementById('dns').value,
-    gateway: document.getElementById('gateway').value
+    function submitBackend() {
+      const data = {
+        url: document.getElementById('backend_url').value,
+        user: document.getElementById('backend_user').value,
+        pass: document.getElementById('backend_pass').value,
+      };
+      fetch('/save-backend', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify(data)
+      }).then(res => res.json())
+        .then(res => alert('Saved!'));
+    }
 
-  };
-  fetch('/save-hardware', {
-    method: 'POST',
-    headers: {'Content-Type': 'application/json'},
-    body: JSON.stringify(data)
-  }).then(res => res.json())
-    .then(res => alert('Saved!'));
+    function updateEthernetLabel() {
+      const isChecked = document.getElementById("ethernetSwitch").checked;
+      const selectedInterface = isChecked ? "eth1" : "eth0";
+      document.getElementById("ethernetLabel").textContent = selectedInterface;
 
-}
-</script>
+      fetch(`/list-hardware?iface=${selectedInterface}`)
+        .then(response => response.json())
+        .then(data => {
+          console.log("Hardware Info:", data);
+
+          // Populate input boxes with the fetched values
+          document.getElementById("hardware_ip").value = data.ip_address || "";
+          document.getElementById("gateway").value = data.gateway || "";
+          document.getElementById("dns").value = (data.dns || []).join(", ");
+        })
+        .catch(err => {
+          console.error("Error:", err);
+          document.getElementById("hardware_ip").value = "";
+          document.getElementById("gateway").value = "";
+          document.getElementById("dns").value = "";
+        });
+    }
+
+
+    function getSelectedEthernet() {
+      return document.getElementById("ethernetSwitch").checked ? "eth1" : "eth0";
+    }
+
+
+    function submitHardware() {
+      const data = {
+        ethernetLabel: document.getElementById('ethernetLabel').textContent,
+        ethernetSwitch: getSelectedEthernet(),
+        hardware_ip: document.getElementById('hardware_ip').value,
+        dns: document.getElementById('dns').value,
+        gateway: document.getElementById('gateway').value
+
+      };
+      fetch('/save-hardware', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify(data)
+      }).then(res => res.json())
+        .then(res => alert('Saved!'));
+
+    }
+  </script>
 
 </body>
+
 </html>
