@@ -1,7 +1,5 @@
 {
-    "ethernetLabel": "eth1",
-    "ethernetSwitch": "eth1",
-    "hardware_ip": "192.168.0.1",
-    "dns": "8.8.8.8, 4.2.2.2",
-    "gateway": "192.168.0.24"
+    "url": "192.168.0.100",
+    "user": "222",
+    "pass": "222"
 }

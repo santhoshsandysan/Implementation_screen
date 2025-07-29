@@ -194,11 +194,30 @@ input:checked + .slider:before {
     <a href="#" onclick="showSection('backend')">Backend Setup</a>
     <a href="#" onclick="showSection('hardware')">Hardware Setup</a>
     <a href="#" onclick="showSection('wifi')">Wi-Fi Config</a>
+    <a href="#" onclick="showSection('Machine')">Machine List</a>
     <a href="#" onclick="showSection('parameters')">Parameters</a>
-    <a href="#" onclick="showSection('Reboot')">Reboot</a>
+    <a href="#" onclick="showSection('reboot')">Reboot</a>
   </div>
 
+
   <div class="main-content">
+<!-- ✅ Machine List -->
+<div id="Machine" class="section">
+  <h2>Machine List</h2>
+
+  <div class="form-group">
+    <label for="machineCount">Enter Number of Machines</label>
+    <input type="number" id="machineCount" min="1" placeholder="e.g. 3">
+    <button onclick="checkMachineLimit()">Generate</button>
+    <button style="background-color: red;" onclick="resetMachines()">Reset Machines</button>
+  </div>  <!-- ✅ closes form-group properly -->
+
+  <div id="machineInputs"></div>
+</div> <!-- ✅ closes Machine section properly -->
+
+
+
+
     <!-- Backend -->
     <div id="backend" class="section active">
   <h2>Backend Setup</h2>
@@ -281,8 +300,47 @@ input:checked + .slider:before {
       <label><input type="checkbox"> Spindle Load</label>
       <label><input type="checkbox"> Program No</label>
     </div>
-  </div>
-</div>
+
+
+
+<!-- ...existing code... -->
+ <div id="reboot" class="section">
+      <h2>Reboot</h2>
+      <p>Click the button below to reboot the system.</p>
+      <button id="rebootBtn" onclick="rebootPi()">Reboot Now</button>
+      <span id="rebootStatus" style="margin-left:10px;color:#b63400;font-weight:bold;"></span>
+    </div>
+  </div> <!-- ✅ closes main-content here -->
+</div> <!-- ✅ closes container here -->
+
+<script>
+function rebootPi() {
+  if (confirm("Are you sure you want to reboot the Raspberry Pi?")) {
+    const btn = document.getElementById('rebootBtn');
+    const status = document.getElementById('rebootStatus');
+    btn.disabled = true;
+    status.textContent = "Rebooting...";
+    fetch('/reboot', {
+      method: 'GET'
+    })
+    .then(response => response.text())
+    .then(msg => {
+      status.textContent = "Reboot command sent!";
+      setTimeout(() => {
+        status.textContent = "";
+        btn.disabled = false;
+      }, 10000); // Re-enable after 10 seconds
+      alert(msg);
+    })
+    .catch(err => {
+      status.textContent = "⚠️ Error!";
+      btn.disabled = false;
+      alert("⚠️ Error sending reboot command!");
+    });
+  }
+}
+</script>
+<!-- ...existing code... -->
 
 <script>
 function showSection(id) {
@@ -293,7 +351,36 @@ function showSection(id) {
   const match = Array.from(document.querySelectorAll('.sidebar a'))
     .find(a => a.textContent.toLowerCase().includes(id));
   if (match) match.classList.add('active');
+
+  // ✅ When Wi-Fi Config is clicked, trigger /current-wifi
+  if (id === 'wifi') {
+    getConnectedWifi();
+  }
 }
+
+function resetMachines() {
+  if (!confirm("⚠️ Are you sure you want to delete ALL machine data?")) {
+    return;
+  }
+
+  fetch('/reset-machines', { method: 'GET' })
+    .then(res => res.json())
+    .then(data => {
+      if (data.status === "ok") {
+        alert("✅ All machine data cleared!");
+        document.getElementById("machineInputs").innerHTML = ""; // clear UI
+        document.getElementById("machineCount").value = ""; // reset count
+      } else {
+        alert("❌ Error: " + data.message);
+      }
+    })
+    .catch(err => {
+      console.error("Reset error:", err);
+      alert("❌ Failed to reset machine data!");
+    });
+}
+
+
 
 function getConnectedWifi() {
   fetch('/current-wifi')
@@ -305,6 +392,151 @@ function getConnectedWifi() {
       console.error("Wi-Fi status error:", err);
       document.getElementById("connectedWifi").textContent = "Error";
     });
+}
+
+function checkMachineLimit() {
+  const count = document.getElementById("machineCount").value;
+  const container = document.getElementById("machineInputs");
+  container.innerHTML = "";
+
+  if (count <= 0) {
+    alert("Please enter a valid number!");
+    return;
+  }
+
+  // ✅ Confirm with backend
+  fetch(`/check-machine-limit?count=${count}`)
+    .then(res => res.json())
+    .then(data => {
+      if (data.status === "ok") {
+        generateMachineInputs(count);
+      } else {
+        alert(data.message || "Machine limit exceeded!");
+      }
+    })
+    .catch(err => {
+      console.error("Error checking limit:", err);
+      alert("⚠️ Unable to check machine limit.");
+    });
+}
+
+function generateMachineInputs(count) {
+  const container = document.getElementById("machineInputs");
+  container.innerHTML = "";
+
+  for (let i = 1; i <= count; i++) {
+    const div = document.createElement("div");
+    div.classList.add("form-group");
+    div.innerHTML = `
+      <h3>Machine ${i}</h3>
+      
+      <label>Machine Name</label>
+      <input type="text" id="machine_name_${i}" placeholder="Enter Machine ${i} Name">
+
+      <label>IP Address</label>
+      <input type="text" id="machine_ip_${i}" placeholder="192.168.x.x">
+
+      <label>Reason ID</label>
+      <input type="text" id="reason_id_${i}" placeholder="Enter Reason ID">
+
+      <label>Operator ID</label>
+      <input type="text" id="operator_id_${i}" placeholder="Enter Operator ID">
+
+      <label>Routecard ID</label>
+      <input type="text" id="routecard_id_${i}" placeholder="Enter Routecard ID">
+
+      <button onclick="submitMachine(${i})">Submit Machine ${i}</button>
+      <span id="status_${i}" style="margin-left:10px;color:green;font-weight:bold;"></span>
+    `;
+    container.appendChild(div);
+  }
+}
+
+function submitMachine(index) {
+  const payload = {
+    machine_name: document.getElementById(`machine_name_${index}`).value,
+    machine_ip: document.getElementById(`machine_ip_${index}`).value,
+    reason_id: document.getElementById(`reason_id_${index}`).value,
+    operator_id: document.getElementById(`operator_id_${index}`).value,
+    routecard_id: document.getElementById(`routecard_id_${index}`).value
+  };
+
+  // ✅ Validate
+  if (!payload.machine_name) {
+    alert(`⚠️ Please enter Machine Name for Machine ${index}`);
+    return;
+  }
+
+  // ✅ Disable button & show status
+  const statusSpan = document.getElementById(`status_${index}`);
+  statusSpan.style.color = "blue";
+  statusSpan.textContent = "Saving...";
+
+  // ✅ Send to backend
+  fetch('/save-machine', {
+    method: 'POST',
+    headers: { 'Content-Type': 'application/json' },
+    body: JSON.stringify(payload)
+  })
+  .then(res => res.json())
+  .then(res => {
+    if (res.status === "ok") {
+      statusSpan.style.color = "green";
+      statusSpan.textContent = "✅ Saved!";
+    } else {
+      statusSpan.style.color = "red";
+      statusSpan.textContent = "❌ Error!";
+    }
+  })
+  .catch(err => {
+    console.error(`Error saving Machine ${index}:`, err);
+    statusSpan.style.color = "red";
+    statusSpan.textContent = "❌ Failed!";
+  });
+}
+
+function saveMachines() {
+  const count = document.getElementById("machineCount").value;
+
+  if (count <= 0) {
+    alert("Please generate machines first!");
+    return;
+  }
+
+  let promises = [];
+
+  for (let i = 1; i <= count; i++) {
+    const payload = {
+      machine_name: document.getElementById(`machine_name_${i}`).value,
+      machine_ip: document.getElementById(`machine_ip_${i}`).value,
+      reason_id: document.getElementById(`reason_id_${i}`).value,
+      operator_id: document.getElementById(`operator_id_${i}`).value,
+      routecard_id: document.getElementById(`routecard_id_${i}`).value
+    };
+
+    // ✅ Validate at least machine name
+    if (!payload.machine_name) {
+      alert(`⚠️ Please enter Machine Name for Machine ${i}`);
+      return;
+    }
+
+    // ✅ Send each machine one by one to backend
+    promises.push(
+      fetch('/save-machine', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify(payload)
+      })
+      .then(res => res.json())
+      .then(res => console.log(`Machine ${i} saved`, res))
+      .catch(err => console.error(`Error saving Machine ${i}:`, err))
+    );
+  }
+
+  // ✅ After all machines are processed
+  Promise.all(promises)
+    .then(() => alert("✅ All machines saved successfully!"))
+    .catch(() => alert("⚠️ Some machines failed to save."));
 }
 
 
